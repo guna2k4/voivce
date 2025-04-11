@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ta">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tamil Voice & SambaNova Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        text-align: center;
+        padding: 2rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      button {
+        padding: 10px 20px;
+        margin: 10px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+
+      input {
+        padding: 10px;
+        width: 80%;
+        max-width: 400px;
+        margin-top: 20px;
+        font-size: 1rem;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+
+      audio {
+        margin-top: 20px;
+        width: 100%;
+        max-width: 400px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const SAMBANOVA_KEY = "fbbc8e62-3ff1-4e0a-9520-6779445dfa9c";
+
+      function App() {
+        const [userText, setUserText] = React.useState("");
+        const [aiResponse, setAiResponse] = React.useState("🤖 AI பதில் காத்திருக்கிறது...");
+        const [audioUrl, setAudioUrl] = React.useState(null);
+        const [isRecording, setIsRecording] = React.useState(false);
+        const mediaRecorderRef = React.useRef(null);
+        const recordedChunksRef = React.useRef([]);
+
+        const handleTextSubmit = async () => {
+          if (!userText.trim()) return;
+
+          setAiResponse("⏳ பதிலை பெற முயற்சிக்கிறது...");
+          setAudioUrl(null);
+
+          const result = await fetch("https://api.sambanova.ai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${SAMBANOVA_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              stream: false,
+              model: "DeepSeek-V3-0324",
+              messages: [
+                { role: "system", content: "You are a helpful assistant. Respond only in Tamil." },
+                { role: "user", content: userText },
+              ],
+            }),
+          });
+
+          const data = await result.json();
+
+          if (data.choices && data.choices.length > 0) {
+            const responseText = data.choices[0].message.content;
+            setAiResponse("🤖 AI பதில்: " + responseText);
+            speakTamil(responseText);
+          } else {
+            setAiResponse("❌ பதிலை பெற முடியவில்லை.");
+          }
+        };
+
+        const speakTamil = (text) => {
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = "ta-IN";
+          utterance.rate = 1;
+          window.speechSynthesis.speak(utterance);
+        };
+
+        const startRecording = async () => {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorderRef.current = new MediaRecorder(stream);
+          recordedChunksRef.current = [];
+
+          mediaRecorderRef.current.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+              recordedChunksRef.current.push(e.data);
+            }
+          };
+
+          mediaRecorderRef.current.onstop = () => {
+            const blob = new Blob(recordedChunksRef.current, { type: "audio/webm" });
+            const url = URL.createObjectURL(blob);
+            setAudioUrl(url);
+          };
+
+          mediaRecorderRef.current.start();
+          setIsRecording(true);
+        };
+
+        const stopRecording = () => {
+          mediaRecorderRef.current.stop();
+          setIsRecording(false);
+        };
+
+        return (
+          <div>
+            <h1>🗣️ தமிழ் Sambanova சாட்</h1>
+            <input
+              type="text"
+              value={userText}
+              onChange={(e) => setUserText(e.target.value)}
+              placeholder="உங்கள் செய்தியை இங்கு தட்டச்சு செய்யுங்கள்"
+            />
+            <br />
+            <button onClick={handleTextSubmit}>📨 அனுப்பு</button>
+
+            <div>
+              <button onClick={isRecording ? stopRecording : startRecording}>
+                🎙️ {isRecording ? "நிறுத்தவும்" : "பதிவேற்று தொடங்கு"}
+              </button>
+            </div>
+
+            <p>{aiResponse}</p>
+
+            {audioUrl && (
+              <div>
+                <h4>🎧 உங்கள் பதிவு:</h4>
+                <audio controls src={audioUrl}></audio>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
+</html>

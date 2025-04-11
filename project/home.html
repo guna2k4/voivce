@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Aadhaar Auto-Fill Form</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #f1f8e9);
+      padding: 40px;
+    }
+
+    .form-box {
+      background: #fff;
+      padding: 30px;
+      max-width: 550px;
+      margin: auto;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #00796b;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: 0.3s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #26a69a;
+      outline: none;
+    }
+
+    #upload-box {
+      margin-top: 10px;
+    }
+
+    .info {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #888;
+      text-align: center;
+    }
+
+    .loader {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid #ccc;
+      border-top-color: #00796b;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .success {
+      color: #388e3c;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-box">
+    <h2>Aadhaar Auto-Fill</h2>
+
+    <label>Upload Aadhaar Card:</label>
+    <input type="file" id="upload-box" accept="image/*" />
+
+    <div class="info" id="status">Waiting for document upload...</div>
+
+    <label>Name:</label>
+    <input type="text" id="name" placeholder="Full Name">
+
+    <label>Date of Birth:</label>
+    <input type="date" id="dob">
+
+    <label>Gender:</label>
+    <input type="text" id="gender" placeholder="Male / Female / Other">
+
+    <label>Aadhaar Number:</label>
+    <input type="text" id="aadhaar">
+
+    <label>Mobile Number:</label>
+    <input type="text" id="mobile">
+
+    <label>Address:</label>
+    <textarea id="address" rows="3"></textarea>
+  </div>
+
+  <script>
+    document.getElementById("upload-box").addEventListener("change", function () {
+      const status = document.getElementById("status");
+      status.innerHTML = '<span class="loader"></span>Processing... Please wait';
+
+      // Simulate OCR processing (5 seconds)
+      setTimeout(() => {
+        const data = {
+          name: "Gunasekara Raj M",
+          dob: "2004-10-07",
+          gender: "MALE",
+          aadhaar: "5613 8806 2728",
+          mobile: "9153 9337 0045 7924",
+          address: "MUNIYASAMY KOVIL NORTH STREET, Sattur, Virudhunagar, Tamil Nadu, 626203"
+        };
+
+        document.getElementById("name").value = data.name;
+        document.getElementById("dob").value = data.dob;
+        document.getElementById("gender").value = data.gender;
+        document.getElementById("aadhaar").value = data.aadhaar;
+        document.getElementById("mobile").value = data.mobile;
+        document.getElementById("address").value = data.address;
+
+        status.innerHTML = '<span class="success">✔️ Form filled successfully.</span>';
+      }, 5000);
+    });
+  </script>
+
+</body>
+</html>

@@ -2,73 +2,44 @@
 <html lang="ta">
   <head>
     <meta charset="UTF-8" />
-    <title>Tamil Voice & SambaNova Chat</title>
+    <title>Tamil Voice & Schemes UI</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Link to external CSS -->
+    <link rel="stylesheet" href="styles.css" />
+
+    <!-- React & Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f0f0f0;
-        text-align: center;
-        padding: 2rem;
-      }
-
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      button {
-        padding: 10px 20px;
-        margin: 10px;
-        background-color: #4caf50;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-size: 1rem;
-        cursor: pointer;
-      }
-
-      input {
-        padding: 10px;
-        width: 80%;
-        max-width: 400px;
-        margin-top: 20px;
-        font-size: 1rem;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-      }
-
-      audio {
-        margin-top: 20px;
-        width: 100%;
-        max-width: 400px;
-      }
-    </style>
   </head>
 
   <body>
     <div id="root"></div>
 
-    <script type="text/babel">
-      const SAMBANOVA_KEY = "fbbc8e62-3ff1-4e0a-9520-6779445dfa9c";
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-      function App() {
+    <script type="text/babel">
+      const SAMBANOVA_KEY = "b83fd8b0-19ea-4af6-bb47-16587ceb3c0a";
+
+      function VoiceChat() {
         const [userText, setUserText] = React.useState("");
         const [aiResponse, setAiResponse] = React.useState("🤖 AI பதில் காத்திருக்கிறது...");
-        const [audioUrl, setAudioUrl] = React.useState(null);
         const [isRecording, setIsRecording] = React.useState(false);
-        const mediaRecorderRef = React.useRef(null);
-        const recordedChunksRef = React.useRef([]);
+        const [recordingText, setRecordingText] = React.useState("");
 
-        const handleTextSubmit = async () => {
-          if (!userText.trim()) return;
-
+        // Sends the input text to the API and sets the AI response.
+        const handleTextSubmit = async (text) => {
+          const query = text || userText;
+          if (!query.trim()) return;
           setAiResponse("⏳ பதிலை பெற முயற்சிக்கிறது...");
-          setAudioUrl(null);
-
           const result = await fetch("https://api.sambanova.ai/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -79,16 +50,20 @@
               stream: false,
               model: "DeepSeek-V3-0324",
               messages: [
-                { role: "system", content: "You are a helpful assistant. Respond only in Tamil." },
-                { role: "user", content: userText },
+                {
+                  role: "system",
+                  content:
+                    "நீங்கள் தமிழ் உதவியாளர். எப்போதும் தமிழில் மட்டும் பதிலளிக்கவும். எந்த சிறப்பு எழுத்துக்களும் பயன்படுத்த வேண்டாம். பதில் எளிமையாகவும், சுருக்கமாகவும் இருக்க வேண்டும். பேச்சு மொழியில் பதிலளிக்கவும்.",
+                },
+                { role: "user", content: query },
               ],
             }),
           });
-
           const data = await result.json();
-
           if (data.choices && data.choices.length > 0) {
-            const responseText = data.choices[0].message.content;
+            const responseText = data.choices[0].message.content
+              .replace(/[^\u0B80-\u0BFF\s]/g, "")
+              .trim();
             setAiResponse("🤖 AI பதில்: " + responseText);
             speakTamil(responseText);
           } else {
@@ -96,65 +71,119 @@
           }
         };
 
+        // Uses speechSynthesis to speak the AI response.
         const speakTamil = (text) => {
-          const utterance = new SpeechSynthesisUtterance(text);
-          utterance.lang = "ta-IN";
-          utterance.rate = 1;
-          window.speechSynthesis.speak(utterance);
+          if ("speechSynthesis" in window) {
+            const voices = window.speechSynthesis.getVoices();
+            const tamilVoice = voices.find((v) => v.lang.includes("ta"));
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "ta-IN";
+            utterance.voice = tamilVoice || null;
+            utterance.rate = 1;
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utterance);
+          } else {
+            alert("உங்கள் உலாவியில் உரை பேசும் வசதி இல்லை.");
+          }
         };
 
-        const startRecording = async () => {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          mediaRecorderRef.current = new MediaRecorder(stream);
-          recordedChunksRef.current = [];
-
-          mediaRecorderRef.current.ondataavailable = (e) => {
-            if (e.data.size > 0) {
-              recordedChunksRef.current.push(e.data);
-            }
-          };
-
-          mediaRecorderRef.current.onstop = () => {
-            const blob = new Blob(recordedChunksRef.current, { type: "audio/webm" });
-            const url = URL.createObjectURL(blob);
-            setAudioUrl(url);
-          };
-
-          mediaRecorderRef.current.start();
+        // Starts speech recognition which automatically stops when speech finishes.
+        const startVoiceRecognition = () => {
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (!SpeechRecognition) {
+            alert("உங்கள் உலாவி Speech Recognition-ஐ ஆதரிக்கவில்லை.");
+            return;
+          }
           setIsRecording(true);
-        };
+          setRecordingText("🎤 பதிவு நடைபெறுகிறது...");
 
-        const stopRecording = () => {
-          mediaRecorderRef.current.stop();
-          setIsRecording(false);
+          const recognition = new SpeechRecognition();
+          recognition.lang = "ta-IN";
+          recognition.interimResults = false;
+          recognition.maxAlternatives = 1;
+          recognition.continuous = false;  // Auto-stops after speech finishes
+
+          recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            setUserText(transcript);
+            handleTextSubmit(transcript); // Auto-send to AI after speech ends
+          };
+
+          recognition.onerror = (event) => {
+            setAiResponse("❌ உரையை அடையாளம் காண இயலவில்லை.");
+            console.error("Speech recognition error:", event.error);
+          };
+
+          recognition.onend = () => {
+            setIsRecording(false);
+            setRecordingText("");
+          };
+
+          recognition.start();
         };
 
         return (
-          <div>
-            <h1>🗣️ தமிழ் Sambanova சாட்</h1>
+          <div className="voice-chat">
+            <h1>🗣️ தமிழ் Sambanova உதவி</h1>
             <input
               type="text"
+              placeholder="உங்கள் கேள்வியை உள்ளிடவும்"
               value={userText}
               onChange={(e) => setUserText(e.target.value)}
-              placeholder="உங்கள் செய்தியை இங்கு தட்டச்சு செய்யுங்கள்"
             />
-            <br />
-            <button onClick={handleTextSubmit}>📨 அனுப்பு</button>
-
-            <div>
-              <button onClick={isRecording ? stopRecording : startRecording}>
-                🎙️ {isRecording ? "நிறுத்தவும்" : "பதிவேற்று தொடங்கு"}
+            <div className="button-group">
+              <button onClick={() => handleTextSubmit()}>📝 பதில் பெற</button>
+              <button onClick={startVoiceRecognition} disabled={isRecording}>
+                🎙️ பதிவு செய்
               </button>
             </div>
+            {recordingText && <div className="recording-text">{recordingText}</div>}
+            <div className="response-box">
+              <p>{aiResponse}</p>
+            </div>
+          </div>
+        );
+      }
 
-            <p>{aiResponse}</p>
+      function SchemeGrid() {
+        const schemes = [
+          { name: "பசுமை திட்டம்", image: "images/green.jpg" },
+          { name: "அரசு வேலைவாய்ப்பு", image: "images/job.jpg" },
+          { name: "மருத்துவ உதவி", image: "images/health.jpg" },
+          { name: "பெண்கள் பாதுகாப்பு", image: "images/women.jpg" },
+          { name: "கல்வி உதவி", image: "images/education.jpg" },
+          { name: "விவசாய உதவி", image: "images/farming.jpg" },
+        ];
 
-            {audioUrl && (
-              <div>
-                <h4>🎧 உங்கள் பதிவு:</h4>
-                <audio controls src={audioUrl}></audio>
-              </div>
-            )}
+        const handleClick = (schemeName) => {
+          window.location.href = "home.html";
+        };
+
+        return (
+          <div className="scheme-grid">
+            <h1>📜 அரசு திட்டங்கள்</h1>
+            <div className="grid-container">
+              {schemes.map((scheme, index) => (
+                <div
+                  key={index}
+                  className="scheme-card"
+                  onClick={() => handleClick(scheme.name)}
+                >
+                  <img src={scheme.image} alt={scheme.name} className="scheme-image" />
+                  <div className="scheme-overlay">{scheme.name}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      function App() {
+        return (
+          <div>
+            <VoiceChat />
+            <hr />
+            <SchemeGrid />
           </div>
         );
       }

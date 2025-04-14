@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aadhaar Auto-Fill Form</title>
+  
+  <!-- Bootstrap CDN -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -13,10 +18,11 @@
     .form-box {
       background: #fff;
       padding: 30px;
-      max-width: 550px;
+      max-width: 600px;
       margin: auto;
       border-radius: 15px;
       box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      animation: fadeIn 1s ease-out;
     }
 
     h2 {
@@ -80,36 +86,52 @@
       color: #388e3c;
       font-weight: bold;
     }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
   </style>
 </head>
 <body>
 
-  <div class="form-box">
+  <div class="form-box animated fadeIn">
     <h2>Aadhaar Auto-Fill</h2>
 
     <label>Upload Aadhaar Card:</label>
-    <input type="file" id="upload-box" accept="image/*" />
+    <input type="file" id="upload-box" accept="image/*" class="form-control">
 
     <div class="info" id="status">Waiting for document upload...</div>
 
-    <label>Name:</label>
-    <input type="text" id="name" placeholder="Full Name">
+    <label for="name">Name:</label>
+    <input type="text" id="name" class="form-control" placeholder="Full Name">
 
-    <label>Date of Birth:</label>
-    <input type="date" id="dob">
+    <label for="dob">Date of Birth:</label>
+    <input type="date" id="dob" class="form-control">
 
-    <label>Gender:</label>
-    <input type="text" id="gender" placeholder="Male / Female / Other">
+    <label for="gender">Gender:</label>
+    <input type="text" id="gender" class="form-control" placeholder="Male / Female / Other">
 
-    <label>Aadhaar Number:</label>
-    <input type="text" id="aadhaar">
+    <label for="aadhaar">Aadhaar Number:</label>
+    <input type="text" id="aadhaar" class="form-control" placeholder="Aadhaar Number">
 
-    <label>Mobile Number:</label>
-    <input type="text" id="mobile">
+    <label for="mobile">Mobile Number:</label>
+    <input type="text" id="mobile" class="form-control" placeholder="Mobile Number">
 
-    <label>Address:</label>
-    <textarea id="address" rows="3"></textarea>
+    <label for="address">Address:</label>
+    <textarea id="address" class="form-control" rows="3" placeholder="Address"></textarea>
+
+    <!-- New ID Card Number field -->
+    <label for="id-card">ID Card Number:</label>
+    <input type="text" id="id-card" class="form-control" placeholder="ID Card Number">
+
+    <button type="submit" class="btn btn-primary btn-block mt-4">Submit</button>
   </div>
+
+  <!-- Bootstrap JS & jQuery -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
   <script>
     document.getElementById("upload-box").addEventListener("change", function () {
@@ -124,7 +146,8 @@
           gender: "MALE",
           aadhaar: "5613 8806 2728",
           mobile: "9153 9337 0045 7924",
-          address: "MUNIYASAMY KOVIL NORTH STREET, Sattur, Virudhunagar, Tamil Nadu, 626203"
+          address: "MUNIYASAMY KOVIL NORTH STREET, Sattur, Virudhunagar, Tamil Nadu, 626203",
+          idCard: "ABC12345678"
         };
 
         document.getElementById("name").value = data.name;
@@ -133,6 +156,7 @@
         document.getElementById("aadhaar").value = data.aadhaar;
         document.getElementById("mobile").value = data.mobile;
         document.getElementById("address").value = data.address;
+        document.getElementById("id-card").value = data.idCard;
 
         status.innerHTML = '<span class="success">✔️ Form filled successfully.</span>';
       }, 5000);

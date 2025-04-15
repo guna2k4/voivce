@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OTP Verification - Fast2SMS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px 0;
+      width: 300px;
+    }
+    #responseMessage {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h2>OTP Verification - Fast2SMS</h2>
+
+  <label for="phone">Phone Number:</label><br>
+  <input type="text" id="phone" placeholder="Enter Phone Number (e.g. 9876543210)" /><br>
+
+  <button onclick="sendOTP()">Send OTP</button><br>
+
+  <label for="otp">Enter OTP:</label><br>
+  <input type="text" id="otp" placeholder="Enter OTP" /><br>
+
+  <button onclick="verifyOTP()">Verify OTP</button>
+
+  <p id="responseMessage"></p>
+
+  <script>
+    let generatedOTP = "";
+
+    function sendOTP() {
+      const phoneNumber = document.getElementById("phone").value;
+
+      // Generate OTP
+      generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // Fast2SMS API key (Use it for testing, not in production)
+      const API_KEY = "AcxX6CszneNMaHGKP2k7roySihOl4Ym8Rgpuw9fqD0QBZULbTJO5B9fMbUPsA7T1mvtGecDXdqLYaikQ";
+
+      // Fast2SMS API endpoint
+      const url = `https://www.fast2sms.com/dev/bulkV2?authorization=${API_KEY}&variables_values=${generatedOTP}&route=otp&numbers=${phoneNumber}`;
+
+      // Send OTP request to Fast2SMS
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          if (data["message"]) {
+            document.getElementById("responseMessage").innerText = `OTP sent to ${phoneNumber}`;
+          } else {
+            document.getElementById("responseMessage").innerText = "Failed to send OTP.";
+          }
+        })
+        .catch(error => {
+          document.getElementById("responseMessage").innerText = "Error: " + error.message;
+        });
+    }
+
+    function verifyOTP() {
+      const enteredOTP = document.getElementById("otp").value;
+
+      if (enteredOTP === generatedOTP) {
+        document.getElementById("responseMessage").innerText = "OTP Verified Successfully!";
+      } else {
+        document.getElementById("responseMessage").innerText = "Invalid OTP!";
+      }
+    }
+  </script>
+</body>
+</html>

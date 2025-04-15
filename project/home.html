@@ -3,164 +3,242 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aadhaar Auto-Fill Form</title>
-  
-  <!-- Bootstrap CDN -->
+  <title>DigiLocker Scheme Form</title>
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #e0f7fa, #f1f8e9);
-      padding: 40px;
-    }
-
-    .form-box {
-      background: #fff;
-      padding: 30px;
-      max-width: 600px;
-      margin: auto;
-      border-radius: 15px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-      animation: fadeIn 1s ease-out;
-    }
-
-    h2 {
-      text-align: center;
-      color: #00796b;
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: 600;
-      color: #333;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 15px;
-      transition: 0.3s;
-    }
-
-    input:focus, textarea:focus {
-      border-color: #26a69a;
-      outline: none;
-    }
-
-    #upload-box {
-      margin-top: 10px;
-    }
-
-    .info {
-      margin-top: 12px;
-      font-size: 14px;
-      color: #888;
-      text-align: center;
-    }
-
+    .hidden { display: none; }
     .loader {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
       border: 3px solid #ccc;
-      border-top-color: #00796b;
+      border-top: 3px solid #007bff;
       border-radius: 50%;
+      width: 20px;
+      height: 20px;
       animation: spin 1s linear infinite;
-      vertical-align: middle;
-      margin-right: 8px;
+      display: inline-block;
+      margin-right: 10px;
     }
-
     @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    .success {
-      color: #388e3c;
-      font-weight: bold;
-    }
-
-    @keyframes fadeIn {
-      0% { opacity: 0; }
-      100% { opacity: 1; }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
-<body>
+<body class="p-4">
 
-  <div class="form-box animated fadeIn">
-    <h2>Aadhaar Auto-Fill</h2>
-
-    <label>Upload Aadhaar Card:</label>
-    <input type="file" id="upload-box" accept="image/*" class="form-control">
-
-    <div class="info" id="status">Waiting for document upload...</div>
-
-    <label for="name">Name:</label>
-    <input type="text" id="name" class="form-control" placeholder="Full Name">
-
-    <label for="dob">Date of Birth:</label>
-    <input type="date" id="dob" class="form-control">
-
-    <label for="gender">Gender:</label>
-    <input type="text" id="gender" class="form-control" placeholder="Male / Female / Other">
-
-    <label for="aadhaar">Aadhaar Number:</label>
-    <input type="text" id="aadhaar" class="form-control" placeholder="Aadhaar Number">
-
-    <label for="mobile">Mobile Number:</label>
-    <input type="text" id="mobile" class="form-control" placeholder="Mobile Number">
-
-    <label for="address">Address:</label>
-    <textarea id="address" class="form-control" rows="3" placeholder="Address"></textarea>
-
-    <!-- New ID Card Number field -->
-    <label for="id-card">ID Card Number:</label>
-    <input type="text" id="id-card" class="form-control" placeholder="ID Card Number">
-
-    <button type="submit" class="btn btn-primary btn-block mt-4">Submit</button>
+  <!-- OTP Verification Page -->
+  <div id="otpPage" class="container">
+    <h2>OTP Verification</h2>
+    <p>Enter your mobile number and register with Aadhaar</p>
+    <form id="otpForm">
+      <div class="form-group">
+        <label for="phone">Mobile Number</label>
+        <input type="tel" id="phone" class="form-control" placeholder="Enter mobile number" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Send OTP</button>
+    </form>
+    <div id="otpInputSection" class="hidden">
+      <div class="form-group">
+        <label for="otp">Enter OTP</label>
+        <input type="text" id="otp" class="form-control" placeholder="Enter OTP" required>
+      </div>
+      <button type="button" onclick="verifyOTP()" class="btn btn-success">Verify OTP</button>
+    </div>
   </div>
 
-  <!-- Bootstrap JS & jQuery -->
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- Home Page (Document Selection) -->
+  <div id="homePage" class="container hidden">
+    <h2>Select Documents</h2>
+    <form id="docForm">
+      <div class="form-group">
+        <label>Choose your document(s):</label>
+        <div class="card-deck">
+          <div class="card">
+            <div class="card-body text-center">
+              <input type="checkbox" name="documentType" value="aadhaar" id="aadhaar">
+              <label for="aadhaar">Aadhaar Card</label>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body text-center">
+              <input type="checkbox" name="documentType" value="pan" id="pan">
+              <label for="pan">PAN Card</label>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body text-center">
+              <input type="checkbox" name="documentType" value="voter" id="voter">
+              <label for="voter">Voter ID</label>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body text-center">
+              <input type="checkbox" name="documentType" value="driving" id="driving">
+              <label for="driving">Driving License</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary mt-3">Next</button>
+    </form>
+  </div>
+
+  <!-- Form Page (Dynamic Form Based on Selection) -->
+  <div id="formPage" class="container hidden">
+    <h2>DigiLocker Form</h2>
+    <p id="status"><span class="loader"></span> Sending request to DigiLocker...</p>
+    <form id="dynamicForm" class="mt-4"></form>
+    <div id="successMsg" class="alert alert-success mt-4 hidden">
+      ✅ Scheme applied successfully!
+      <br>
+      <button onclick="returnHome()" class="btn btn-success mt-2">🏠 Return Home</button>
+    </div>
+  </div>
 
   <script>
-    document.getElementById("upload-box").addEventListener("change", function () {
-      const status = document.getElementById("status");
-      status.innerHTML = '<span class="loader"></span>Processing... Please wait';
+    const otpPage = document.getElementById("otpPage");
+    const homePage = document.getElementById("homePage");
+    const formPage = document.getElementById("formPage");
+    const form = document.getElementById("dynamicForm");
+    const status = document.getElementById("status");
+    const successMsg = document.getElementById("successMsg");
+    const otpInputSection = document.getElementById("otpInputSection");
 
-      // Simulate OCR processing (5 seconds)
-      setTimeout(() => {
-        const data = {
-          name: "Gunasekara Raj M",
-          dob: "2004-10-07",
-          gender: "MALE",
-          aadhaar: "5613 8806 2728",
-          mobile: "9153 9337 0045 7924",
-          address: "MUNIYASAMY KOVIL NORTH STREET, Sattur, Virudhunagar, Tamil Nadu, 626203",
-          idCard: "ABC12345678"
-        };
+    let selectedDocs = [];
 
-        document.getElementById("name").value = data.name;
-        document.getElementById("dob").value = data.dob;
-        document.getElementById("gender").value = data.gender;
-        document.getElementById("aadhaar").value = data.aadhaar;
-        document.getElementById("mobile").value = data.mobile;
-        document.getElementById("address").value = data.address;
-        document.getElementById("id-card").value = data.idCard;
-
-        status.innerHTML = '<span class="success">✔️ Form filled successfully.</span>';
-      }, 5000);
+    // OTP Page - Send OTP
+    document.getElementById("otpForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const phone = document.getElementById("phone").value;
+      if (!phone) {
+        alert("Please enter a mobile number.");
+        return;
+      }
+      alert(`OTP sent to ${phone}`);
+      otpInputSection.classList.remove("hidden");
     });
+
+    // OTP Verification
+    function verifyOTP() {
+      const otp = document.getElementById("otp").value;
+      if (otp === "1234") {
+        alert("OTP Verified!");
+        otpPage.classList.add("hidden");
+        homePage.classList.remove("hidden");
+      } else {
+        alert("Invalid OTP. Please try again.");
+      }
+    }
+
+    // Home Page - Document Selection
+    document.getElementById("docForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      selectedDocs = [];
+      document.querySelectorAll("input[type='checkbox']:checked").forEach(cb => {
+        selectedDocs.push(cb.value);
+      });
+
+      if (selectedDocs.length === 0) {
+        alert("Please select at least one document.");
+        return;
+      }
+
+      homePage.classList.add("hidden");
+      formPage.classList.remove("hidden");
+
+      createFormFields();
+      setTimeout(autoFillForm, 20000); // Simulate DigiLocker delay
+    });
+
+    function createFormFields() {
+      form.innerHTML = ""; // clear form
+      if (selectedDocs.includes("aadhaar")) {
+        form.innerHTML += `
+          <h4>Aadhaar Card Details</h4>
+          <div class="form-group">
+            <label>Full Name</label>
+            <input class="form-control" id="aadhaar-name" required>
+          </div>
+          <div class="form-group">
+            <label>Address</label>
+            <input class="form-control" id="aadhaar-address" required>
+          </div>
+          <div class="form-group">
+            <label>Mobile Number</label>
+            <input class="form-control" id="aadhaar-mobile" required>
+          </div>
+          <div class="form-group">
+            <label>Father's Name</label>
+            <input class="form-control" id="aadhaar-father" required>
+          </div>
+          <div class="form-group">
+            <label>Mother's Name</label>
+            <input class="form-control" id="aadhaar-mother" required>
+          </div>`;
+      }
+      if (selectedDocs.includes("pan")) {
+        form.innerHTML += `
+          <h4>PAN Card Details</h4>
+          <div class="form-group">
+            <label>PAN Number</label>
+            <input class="form-control" id="pan-number" required>
+          </div>`;
+      }
+      if (selectedDocs.includes("voter")) {
+        form.innerHTML += `
+          <h4>Voter ID Details</h4>
+          <div class="form-group">
+            <label>Voter ID Number</label>
+            <input class="form-control" id="voter-id" required>
+          </div>`;
+      }
+      if (selectedDocs.includes("driving")) {
+        form.innerHTML += `
+          <h4>Driving License Details</h4>
+          <div class="form-group">
+            <label>License Number</label>
+            <input class="form-control" id="license-number" required>
+          </div>`;
+      }
+
+      form.innerHTML += `<button type="submit" class="btn btn-primary mt-3">Submit</button>`;
+    }
+
+    function autoFillForm() {
+      if (selectedDocs.includes("aadhaar")) {
+        document.getElementById("aadhaar-name").value = "Raj Kumar";
+        document.getElementById("aadhaar-address").value = "123 Main Road, Chennai";
+        document.getElementById("aadhaar-mobile").value = "9876543210";
+        document.getElementById("aadhaar-father").value = "Ramesh Kumar";
+        document.getElementById("aadhaar-mother").value = "Sita Kumari";
+      }
+      if (selectedDocs.includes("pan")) {
+        document.getElementById("pan-number").value = "ABCDE1234F";
+      }
+      if (selectedDocs.includes("voter")) {
+        document.getElementById("voter-id").value = "VTR1234567";
+      }
+      if (selectedDocs.includes("driving")) {
+        document.getElementById("license-number").value = "DL123456789";
+      }
+
+      status.innerHTML = "✔️ Form auto-filled using DigiLocker!";
+    }
+
+    // Submit form
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      form.classList.add("hidden");
+      successMsg.classList.remove("hidden");
+    });
+
+    function returnHome() {
+      document.getElementById("docForm").reset();
+      form.classList.remove("hidden");
+      form.innerHTML = "";
+      successMsg.classList.add("hidden");
+      homePage.classList.remove("hidden");
+      formPage.classList.add("hidden");
+      status.innerHTML = `<span class="loader"></span> Sending request to DigiLocker...`;
+    }
   </script>
 
 </body>

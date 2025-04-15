@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>High Accuracy OCR Text Extractor (English Only)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 40px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+    }
+    input, button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-top: 20px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    pre {
+      background: #f0f0f0;
+      padding: 15px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      margin-top: 20px;
+      direction: ltr;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Upload Image or PDF to Extract English Text</h2>
+    <input type="file" id="fileInput" accept="image/*,application/pdf">
+    <button onclick="extractText()">Extract Text</button>
+    <pre id="output">Extracted text will appear here...</pre>
+  </div>
+
+  <script>
+    async function extractWithLanguage(file, language) {
+      const formData = new FormData();
+      formData.append("apikey", "K85061176588957");
+      formData.append("file", file);
+      formData.append("language", language); // Set to English only.
+      // Additional parameters for higher accuracy
+      formData.append("OCREngine", "2");   // Use OCR engine 2 for high accuracy.
+      formData.append("scale", "true");     // Scale the image for better accuracy.
+      formData.append("isOverlayRequired", "false");
+
+      const response = await fetch("https://api.ocr.space/parse/image", {
+        method: "POST",
+        body: formData
+      });
+      return await response.json();
+    }
+
+    async function extractText() {
+      const fileInput = document.getElementById("fileInput");
+      const output = document.getElementById("output");
+
+      if (!fileInput.files.length) {
+        alert("Please select a file.");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      output.textContent = "🔄 Extracting text using English OCR...";
+
+      try {
+        const result = await extractWithLanguage(file, "eng");
+        const extractedText = result.ParsedResults?.[0]?.ParsedText?.trim();
+
+        if (!extractedText) {
+          output.textContent = "❌ No text found.";
+          return;
+        }
+
+        output.textContent = "✅ OCR Extracted Text:\n\n" + extractedText;
+      } catch (error) {
+        console.error(error);
+        output.textContent = "❌ Network Error: " + error.message;
+      }
+    }
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>High Accuracy OCR Text Extractor (English Only)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 40px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+    }
+    input, button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-top: 20px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    pre {
+      background: #f0f0f0;
+      padding: 15px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      margin-top: 20px;
+      direction: ltr;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Upload Image or PDF to Extract English Text</h2>
+    <input type="file" id="fileInput" accept="image/*,application/pdf">
+    <button onclick="extractText()">Extract Text</button>
+    <pre id="output">Extracted text will appear here...</pre>
+  </div>
+
+  <script>
+    async function extractWithLanguage(file, language) {
+      const formData = new FormData();
+      formData.append("apikey", "K85061176588957");
+      formData.append("file", file);
+      formData.append("language", language); // Set to English only.
+      // Additional parameters for higher accuracy
+      formData.append("OCREngine", "2");   // Use OCR engine 2 for high accuracy.
+      formData.append("scale", "true");     // Scale the image for better accuracy.
+      formData.append("isOverlayRequired", "false");
+
+      const response = await fetch("https://api.ocr.space/parse/image", {
+        method: "POST",
+        body: formData
+      });
+      return await response.json();
+    }
+
+    async function extractText() {
+      const fileInput = document.getElementById("fileInput");
+      const output = document.getElementById("output");
+
+      if (!fileInput.files.length) {
+        alert("Please select a file.");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      output.textContent = "🔄 Extracting text using English OCR...";
+
+      try {
+        const result = await extractWithLanguage(file, "eng");
+        const extractedText = result.ParsedResults?.[0]?.ParsedText?.trim();
+
+        if (!extractedText) {
+          output.textContent = "❌ No text found.";
+          return;
+        }
+
+        output.textContent = "✅ OCR Extracted Text:\n\n" + extractedText;
+      } catch (error) {
+        console.error(error);
+        output.textContent = "❌ Network Error: " + error.message;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DeepSeek AI Auto-Fill Key Details</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 15px;
+      margin-top: 10px;
+      border: none;
+      background: #28a745;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #218838;
+    }
+    label {
+      margin-top: 15px;
+      font-weight: bold;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Paste OCR Text & Auto-Fill Key Details</h2>
+    <textarea id="ocrText" rows="6" placeholder="Paste the complete OCR extracted text here..."></textarea>
+    <button onclick="processText()">Extract Key Details</button>
+
+    <h3>Auto-Filled Details:</h3>
+    <label for="name">Name / பெயர்:</label>
+    <input type="text" id="name" readonly>
+
+    <label for="age">Age / வயது:</label>
+    <input type="text" id="age" readonly>
+
+    <label for="gender">Gender / பாலினம்:</label>
+    <input type="text" id="gender" readonly>
+
+    <label for="fatherName">Father's Name / தந்தையின் பெயர்:</label>
+    <input type="text" id="fatherName" readonly>
+
+    <label for="aadhaar">Aadhaar Number / ஆதார் எண்:</label>
+    <input type="text" id="aadhaar" readonly>
+
+    <label for="phone">Phone Number / தொலைபேசி எண்:</label>
+    <input type="text" id="phone" readonly>
+
+    <label for="address">Address / முகவரி:</label>
+    <textarea id="address" rows="3" readonly></textarea>
+  </div>
+
+  <script>
+    // Replace with your valid DeepSeek API key and endpoint.
+    const API_KEY = "103a7289888c3de65bede92e1f8a3806a057b72a0c552825669901d4819e0d4b";
+    const ENDPOINT = "https://api.together.xyz/v1/chat/completions";
+    const MODEL = "deepseek-ai/DeepSeek-V3";
+
+    async function processText() {
+      const ocrText = document.getElementById("ocrText").value.trim();
+      if (!ocrText) {
+        alert("Please paste the OCR extracted text.");
+        return;
+      }
+
+      // Build prompt instructing DeepSeek to extract key details.
+      const prompt = `Extract the following key details from the text below:
+- Name
+- Age
+- Gender
+- Father's Name
+- Aadhaar Number
+- Phone Number
+- Address
+
+Return the result strictly as a JSON object with keys:
+"name", "age", "gender", "fatherName", "aadhaar", "phone", "address".
+
+Text:
+${ocrText}`;
+
+      try {
+        const response = await fetch(ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: MODEL,
+            messages: [
+              { role: "system", content: "You extract key details and return results as JSON only." },
+              { role: "user", content: prompt }
+            ]
+          })
+        });
+
+        const data = await response.json();
+        let aiText = data.choices[0].message.content.trim();
+
+        // Attempt direct JSON parse.
+        let details;
+        try {
+          details = JSON.parse(aiText);
+        } catch (e) {
+          // If parsing fails, extract substring between first { and last }.
+          const firstBracket = aiText.indexOf('{');
+          const lastBracket = aiText.lastIndexOf('}');
+          if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+            const jsonString = aiText.substring(firstBracket, lastBracket + 1);
+            details = JSON.parse(jsonString);
+          } else {
+            throw new Error("Unable to extract valid JSON from the response.");
+          }
+        }
+        fillFields(details);
+      } catch (error) {
+        console.error("Error processing text:", error);
+        alert("Error: " + error.message);
+      }
+    }
+    
+    function fillFields(details) {
+      document.getElementById("name").value = details.name || "";
+      document.getElementById("age").value = details.age || "";
+      document.getElementById("gender").value = details.gender || "";
+      document.getElementById("fatherName").value = details.fatherName || "";
+      document.getElementById("aadhaar").value = details.aadhaar || "";
+      document.getElementById("phone").value = details.phone || "";
+      document.getElementById("address").value = details.address || "";
+    }
+  </script>
+</body>
+</html>

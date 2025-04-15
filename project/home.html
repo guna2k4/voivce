@@ -20,6 +20,18 @@
     @keyframes spin {
       100% { transform: rotate(360deg); }
     }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px 0;
+      width: 300px;
+    }
+    #responseMessage {
+      color: green;
+    }
   </style>
 </head>
 <body class="p-4">
@@ -33,7 +45,7 @@
         <label for="phone">Mobile Number</label>
         <input type="tel" id="phone" class="form-control" placeholder="Enter mobile number" required>
       </div>
-      <button type="submit" class="btn btn-primary">Send OTP</button>
+      <button type="button" class="btn btn-primary" onclick="sendOTP()">Send OTP</button>
     </form>
     <div id="otpInputSection" class="hidden">
       <div class="form-group">
@@ -42,6 +54,7 @@
       </div>
       <button type="button" onclick="verifyOTP()" class="btn btn-success">Verify OTP</button>
     </div>
+    <p id="responseMessage"></p>
   </div>
 
   <!-- Home Page (Document Selection) -->
@@ -94,6 +107,7 @@
   </div>
 
   <script>
+    let generatedOTP = "";
     const otpPage = document.getElementById("otpPage");
     const homePage = document.getElementById("homePage");
     const formPage = document.getElementById("formPage");
@@ -102,29 +116,50 @@
     const successMsg = document.getElementById("successMsg");
     const otpInputSection = document.getElementById("otpInputSection");
 
-    let selectedDocs = [];
-
     // OTP Page - Send OTP
-    document.getElementById("otpForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const phone = document.getElementById("phone").value;
-      if (!phone) {
+    function sendOTP() {
+      const phoneNumber = document.getElementById("phone").value;
+
+      if (!phoneNumber) {
         alert("Please enter a mobile number.");
         return;
       }
-      alert(`OTP sent to ${phone}`);
-      otpInputSection.classList.remove("hidden");
-    });
+
+      // Generate OTP
+      generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // Fast2SMS API key (Use it for testing, not in production)
+      const API_KEY = "AcxX6CszneNMaHGKP2k7roySihOl4Ym8Rgpuw9fqD0QBZULbTJO5B9fMbUPsA7T1mvtGecDXdqLYaikQ";
+
+      // Fast2SMS API endpoint
+      const url = `https://www.fast2sms.com/dev/bulkV2?authorization=${API_KEY}&variables_values=${generatedOTP}&route=otp&numbers=${phoneNumber}`;
+
+      // Send OTP request to Fast2SMS
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          if (data["message"]) {
+            document.getElementById("responseMessage").innerText = `OTP sent to ${phoneNumber}`;
+            otpInputSection.classList.remove("hidden");
+          } else {
+            document.getElementById("responseMessage").innerText = "Failed to send OTP.";
+          }
+        })
+        .catch(error => {
+          document.getElementById("responseMessage").innerText = "Error: " + error.message;
+        });
+    }
 
     // OTP Verification
     function verifyOTP() {
-      const otp = document.getElementById("otp").value;
-      if (otp === "1234") {
-        alert("OTP Verified!");
+      const enteredOTP = document.getElementById("otp").value;
+
+      if (enteredOTP === generatedOTP) {
+        document.getElementById("responseMessage").innerText = "OTP Verified Successfully!";
         otpPage.classList.add("hidden");
         homePage.classList.remove("hidden");
       } else {
-        alert("Invalid OTP. Please try again.");
+        document.getElementById("responseMessage").innerText = "Invalid OTP!";
       }
     }
 
@@ -195,49 +230,28 @@
           <h4>Driving License Details</h4>
           <div class="form-group">
             <label>License Number</label>
-            <input class="form-control" id="license-number" required>
+            <input class="form-control" id="driving-license" required>
           </div>`;
       }
-
-      form.innerHTML += `<button type="submit" class="btn btn-primary mt-3">Submit</button>`;
     }
 
     function autoFillForm() {
-      if (selectedDocs.includes("aadhaar")) {
-        document.getElementById("aadhaar-name").value = "Raj Kumar";
-        document.getElementById("aadhaar-address").value = "123 Main Road, Chennai";
-        document.getElementById("aadhaar-mobile").value = "9876543210";
-        document.getElementById("aadhaar-father").value = "Ramesh Kumar";
-        document.getElementById("aadhaar-mother").value = "Sita Kumari";
-      }
-      if (selectedDocs.includes("pan")) {
-        document.getElementById("pan-number").value = "ABCDE1234F";
-      }
-      if (selectedDocs.includes("voter")) {
-        document.getElementById("voter-id").value = "VTR1234567";
-      }
-      if (selectedDocs.includes("driving")) {
-        document.getElementById("license-number").value = "DL123456789";
-      }
+      document.getElementById("aadhaar-name").value = "John Doe";
+      document.getElementById("aadhaar-address").value = "123, ABC Street, XYZ City";
+      document.getElementById("aadhaar-mobile").value = "+919876543210";
+      document.getElementById("aadhaar-father").value = "Robert Doe";
+      document.getElementById("aadhaar-mother").value = "Jane Doe";
 
-      status.innerHTML = "✔️ Form auto-filled using DigiLocker!";
+      status.innerHTML = "<span class='text-success'>Request sent successfully to DigiLocker!</span>";
+
+      successMsg.classList.remove("hidden");
     }
 
-    // Submit form
-    form.addEventListener("submit", function(e) {
-      e.preventDefault();
-      form.classList.add("hidden");
-      successMsg.classList.remove("hidden");
-    });
-
+    // Success - Return Home
     function returnHome() {
-      document.getElementById("docForm").reset();
-      form.classList.remove("hidden");
-      form.innerHTML = "";
-      successMsg.classList.add("hidden");
-      homePage.classList.remove("hidden");
       formPage.classList.add("hidden");
-      status.innerHTML = `<span class="loader"></span> Sending request to DigiLocker...`;
+      homePage.classList.remove("hidden");
+      form.reset();
     }
   </script>
 

@@ -3,23 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DigiLocker Scheme Form</title>
-  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="description" content="OTP Verification using Fast2SMS API">
+  <meta name="author" content="Your Name">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>OTP Verification - Fast2SMS</title>
   <style>
-    .hidden { display: none; }
-    .loader {
-      border: 3px solid #ccc;
-      border-top: 3px solid #007bff;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      animation: spin 1s linear infinite;
-      display: inline-block;
-      margin-right: 10px;
-    }
-    @keyframes spin {
-      100% { transform: rotate(360deg); }
-    }
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
@@ -34,101 +22,37 @@
     }
   </style>
 </head>
-<body class="p-4">
+<body>
+  <h2>OTP Verification - Fast2SMS</h2>
 
-  <!-- OTP Verification Page -->
-  <div id="otpPage" class="container">
-    <h2>OTP Verification</h2>
-    <p>Enter your mobile number and register with Aadhaar</p>
-    <form id="otpForm">
-      <div class="form-group">
-        <label for="phone">Mobile Number</label>
-        <input type="tel" id="phone" class="form-control" placeholder="Enter mobile number" required>
-      </div>
-      <button type="button" class="btn btn-primary" onclick="sendOTP()">Send OTP</button>
-    </form>
-    <div id="otpInputSection" class="hidden">
-      <div class="form-group">
-        <label for="otp">Enter OTP</label>
-        <input type="text" id="otp" class="form-control" placeholder="Enter OTP" required>
-      </div>
-      <button type="button" onclick="verifyOTP()" class="btn btn-success">Verify OTP</button>
-    </div>
-    <p id="responseMessage"></p>
-  </div>
+  <label for="phone">Phone Number:</label><br>
+  <input type="text" id="phone" placeholder="Enter Phone Number (e.g. 9876543210)" /><br>
 
-  <!-- Home Page (Document Selection) -->
-  <div id="homePage" class="container hidden">
-    <h2>Select Documents</h2>
-    <form id="docForm">
-      <div class="form-group">
-        <label>Choose your document(s):</label>
-        <div class="card-deck">
-          <div class="card">
-            <div class="card-body text-center">
-              <input type="checkbox" name="documentType" value="aadhaar" id="aadhaar">
-              <label for="aadhaar">Aadhaar Card</label>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-body text-center">
-              <input type="checkbox" name="documentType" value="pan" id="pan">
-              <label for="pan">PAN Card</label>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-body text-center">
-              <input type="checkbox" name="documentType" value="voter" id="voter">
-              <label for="voter">Voter ID</label>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-body text-center">
-              <input type="checkbox" name="documentType" value="driving" id="driving">
-              <label for="driving">Driving License</label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primary mt-3">Next</button>
-    </form>
-  </div>
+  <button onclick="sendOTP()">Send OTP</button><br>
 
-  <!-- Form Page (Dynamic Form Based on Selection) -->
-  <div id="formPage" class="container hidden">
-    <h2>DigiLocker Form</h2>
-    <p id="status"><span class="loader"></span> Sending request to DigiLocker...</p>
-    <form id="dynamicForm" class="mt-4"></form>
-    <div id="successMsg" class="alert alert-success mt-4 hidden">
-      ✅ Scheme applied successfully!
-      <br>
-      <button onclick="returnHome()" class="btn btn-success mt-2">🏠 Return Home</button>
-    </div>
-  </div>
+  <label for="otp">Enter OTP:</label><br>
+  <input type="text" id="otp" placeholder="Enter OTP" /><br>
+
+  <button onclick="verifyOTP()">Verify OTP</button>
+
+  <p id="responseMessage"></p>
 
   <script>
     let generatedOTP = "";
-    const otpPage = document.getElementById("otpPage");
-    const homePage = document.getElementById("homePage");
-    const formPage = document.getElementById("formPage");
-    const form = document.getElementById("dynamicForm");
-    const status = document.getElementById("status");
-    const successMsg = document.getElementById("successMsg");
-    const otpInputSection = document.getElementById("otpInputSection");
 
-    // OTP Page - Send OTP
+    // Send OTP function
     function sendOTP() {
       const phoneNumber = document.getElementById("phone").value;
 
       if (!phoneNumber) {
-        alert("Please enter a mobile number.");
+        document.getElementById("responseMessage").innerText = "Please enter a valid phone number.";
         return;
       }
 
       // Generate OTP
       generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
 
-      // Fast2SMS API key (Use it for testing, not in production)
+      // Fast2SMS API key (For testing, avoid using in production)
       const API_KEY = "AcxX6CszneNMaHGKP2k7roySihOl4Ym8Rgpuw9fqD0QBZULbTJO5B9fMbUPsA7T1mvtGecDXdqLYaikQ";
 
       // Fast2SMS API endpoint
@@ -140,7 +64,6 @@
         .then(data => {
           if (data["message"]) {
             document.getElementById("responseMessage").innerText = `OTP sent to ${phoneNumber}`;
-            otpInputSection.classList.remove("hidden");
           } else {
             document.getElementById("responseMessage").innerText = "Failed to send OTP.";
           }
@@ -150,110 +73,16 @@
         });
     }
 
-    // OTP Verification
+    // OTP Verification function
     function verifyOTP() {
       const enteredOTP = document.getElementById("otp").value;
 
       if (enteredOTP === generatedOTP) {
         document.getElementById("responseMessage").innerText = "OTP Verified Successfully!";
-        otpPage.classList.add("hidden");
-        homePage.classList.remove("hidden");
       } else {
         document.getElementById("responseMessage").innerText = "Invalid OTP!";
       }
     }
-
-    // Home Page - Document Selection
-    document.getElementById("docForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      selectedDocs = [];
-      document.querySelectorAll("input[type='checkbox']:checked").forEach(cb => {
-        selectedDocs.push(cb.value);
-      });
-
-      if (selectedDocs.length === 0) {
-        alert("Please select at least one document.");
-        return;
-      }
-
-      homePage.classList.add("hidden");
-      formPage.classList.remove("hidden");
-
-      createFormFields();
-      setTimeout(autoFillForm, 20000); // Simulate DigiLocker delay
-    });
-
-    function createFormFields() {
-      form.innerHTML = ""; // clear form
-      if (selectedDocs.includes("aadhaar")) {
-        form.innerHTML += `
-          <h4>Aadhaar Card Details</h4>
-          <div class="form-group">
-            <label>Full Name</label>
-            <input class="form-control" id="aadhaar-name" required>
-          </div>
-          <div class="form-group">
-            <label>Address</label>
-            <input class="form-control" id="aadhaar-address" required>
-          </div>
-          <div class="form-group">
-            <label>Mobile Number</label>
-            <input class="form-control" id="aadhaar-mobile" required>
-          </div>
-          <div class="form-group">
-            <label>Father's Name</label>
-            <input class="form-control" id="aadhaar-father" required>
-          </div>
-          <div class="form-group">
-            <label>Mother's Name</label>
-            <input class="form-control" id="aadhaar-mother" required>
-          </div>`;
-      }
-      if (selectedDocs.includes("pan")) {
-        form.innerHTML += `
-          <h4>PAN Card Details</h4>
-          <div class="form-group">
-            <label>PAN Number</label>
-            <input class="form-control" id="pan-number" required>
-          </div>`;
-      }
-      if (selectedDocs.includes("voter")) {
-        form.innerHTML += `
-          <h4>Voter ID Details</h4>
-          <div class="form-group">
-            <label>Voter ID Number</label>
-            <input class="form-control" id="voter-id" required>
-          </div>`;
-      }
-      if (selectedDocs.includes("driving")) {
-        form.innerHTML += `
-          <h4>Driving License Details</h4>
-          <div class="form-group">
-            <label>License Number</label>
-            <input class="form-control" id="driving-license" required>
-          </div>`;
-      }
-    }
-
-    function autoFillForm() {
-      document.getElementById("aadhaar-name").value = "John Doe";
-      document.getElementById("aadhaar-address").value = "123, ABC Street, XYZ City";
-      document.getElementById("aadhaar-mobile").value = "+919876543210";
-      document.getElementById("aadhaar-father").value = "Robert Doe";
-      document.getElementById("aadhaar-mother").value = "Jane Doe";
-
-      status.innerHTML = "<span class='text-success'>Request sent successfully to DigiLocker!</span>";
-
-      successMsg.classList.remove("hidden");
-    }
-
-    // Success - Return Home
-    function returnHome() {
-      formPage.classList.add("hidden");
-      homePage.classList.remove("hidden");
-      form.reset();
-    }
   </script>
-
 </body>
 </html>

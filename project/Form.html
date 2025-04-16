@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ulavar Attai Details - உளவர் அட்டை விவரங்கள்</title>
+  <!-- Bootstrap CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f2f2f2;
+      padding-top: 70px;
+    }
+    .container-custom {
+      max-width: 600px;
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      margin: auto;
+      margin-bottom: 20px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Responsive Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.html">Home</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup2">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup2">
+        <div class="navbar-nav">
+          <a class="nav-link" href="bank.html">Bank Details</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container for Ulavar Attai -->
+  <div class="container container-custom">
+    <h3 class="mb-4">உளவர் அட்டை விவரங்கள் (Ulavar Attai Details)</h3>
+    <!-- File Upload & OCR Section -->
+    <div id="ulavar-ocr-section">
+      <h5>அட்டை ஆவணத்தைத் தேர்ந்தெடுக்கவும்</h5>
+      <div class="mb-3">
+        <input type="file" class="form-control" id="ulavarFileInput" accept="image/*,application/pdf">
+      </div>
+      <button class="btn btn-primary" onclick="extractUlavarText()">Upload &amp; Process Document</button>
+    </div>
+    <!-- Auto-filled Ulavar Attai Form -->
+    <div id="ulavar-details" class="mt-4 hidden">
+      <h5>ஆட்டோ நிரப்பப்பட்ட உளவர் அட்டை விவரங்கள்</h5>
+      <form id="ulavarForm">
+        <div class="mb-3">
+          <label for="ulavarName" class="form-label">Ulavar Attai Name / அட்டை பெயர்:</label>
+          <input type="text" class="form-control" id="ulavarName">
+        </div>
+        <div class="mb-3">
+          <label for="regNumber" class="form-label">Registration Number / பதிவு எண்:</label>
+          <input type="text" class="form-control" id="regNumber">
+        </div>
+        <div class="mb-3">
+          <label for="issueDate" class="form-label">Issue Date / வழங்கிய தேதி:</label>
+          <input type="date" class="form-control" id="issueDate">
+        </div>
+        <div class="mb-3">
+          <label for="validity" class="form-label">Validity / செல்லுபடியாகும் காலம்:</label>
+          <input type="text" class="form-control" id="validity">
+        </div>
+        <button type="button" class="btn btn-success" onclick="submitUlavar()">Submit Ulavar Attai Details</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // ====== API Credentials & Endpoints (Reuse same credentials) ======
+    const OCR_API_KEY = "K85061176588957";
+    const OCR_API_URL = "https://api.ocr.space/parse/image";
+    const DS_API_KEY = "103a7289888c3de65bede92e1f8a3806a057b72a0c552825669901d4819e0d4b";
+    const DS_ENDPOINT = "https://api.together.xyz/v1/chat/completions";
+    const DS_MODEL = "deepseek-ai/DeepSeek-V3";
+
+    // ====== Ulavar Attai Extraction Functions ======
+    async function extractWithLanguage(file, language) {
+      const formData = new FormData();
+      formData.append("apikey", OCR_API_KEY);
+      formData.append("file", file);
+      formData.append("language", language);
+      formData.append("OCREngine", "2");
+      formData.append("scale", "true");
+      formData.append("isOverlayRequired", "false");
+      
+      const response = await fetch(OCR_API_URL, { method: "POST", body: formData });
+      return await response.json();
+    }
+
+    async function extractUlavarText() {
+      const fileInput = document.getElementById("ulavarFileInput");
+      if (!fileInput.files.length) {
+        alert("தயவு செய்து ஆவணத்தைத் தேர்ந்தெடுக்கவும்.");
+        return;
+      }
+      document.getElementById("ulavar-ocr-section").classList.add("hidden");
+      const file = fileInput.files[0];
+      try {
+        // You can use "tam" if the OCR supports Tamil language; otherwise "eng" may work.
+        const result = await extractWithLanguage(file, "tam");
+        const extractedText = result.ParsedResults?.[0]?.ParsedText?.trim();
+        if (!extractedText) {
+          alert("ஆவணத்தில் எந்த உரையும் கண்டறியவில்லை.");
+          return;
+        }
+        processDeepSeekUlavar(extractedText);
+      } catch (error) {
+        console.error(error);
+        alert("Network error: " + error.message);
+      }
+    }
+
+    async function processDeepSeekUlavar(ocrText) {
+      const prompt = `Extract the following key details from the Ulavar Attai document text:
+- Ulavar Attai Name
+- Registration Number
+- Issue Date
+- Validity
+
+Return the result strictly as a JSON object with keys:
+"ulavarName", "regNumber", "issueDate", "validity".
+
+Text:
+${ocrText}`;
+      try {
+        const response = await fetch(DS_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${DS_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: DS_MODEL,
+            messages: [
+              { role: "system", content: "Extract key details and return results as JSON only." },
+              { role: "user", content: prompt }
+            ]
+          })
+        });
+        const data = await response.json();
+        let aiText = data.choices[0].message.content.trim();
+        let details;
+        try {
+          details = JSON.parse(aiText);
+        } catch (e) {
+          const firstBracket = aiText.indexOf('{');
+          const lastBracket = aiText.lastIndexOf('}');
+          if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+            const jsonString = aiText.substring(firstBracket, lastBracket + 1);
+            details = JSON.parse(jsonString);
+          } else {
+            throw new Error("Unable to extract valid JSON.");
+          }
+        }
+        fillUlavarFields(details);
+      } catch (error) {
+        console.error("Error processing DeepSeek:", error);
+        alert("Error during Ulavar Attai detail extraction: " + error.message);
+      }
+    }
+
+    function fillUlavarFields(details) {
+      document.getElementById("ulavarName").value = details.ulavarName || "";
+      document.getElementById("regNumber").value = details.regNumber || "";
+      document.getElementById("issueDate").value = details.issueDate || "";
+      document.getElementById("validity").value = details.validity || "";
+      document.getElementById("ulavar-details").classList.remove("hidden");
+    }
+
+    function submitUlavar() {
+      alert("Ulavar Attai details submitted successfully!");
+    }
+  </script>
+</body>
+</html>

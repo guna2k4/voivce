@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
 
-    <!-- Link to external CSS -->
+    <!-- Custom styles -->
     <link rel="stylesheet" href="styles.css" />
 
     <!-- React & Babel -->
@@ -31,24 +31,30 @@
 
       function VoiceChat() {
         const [userText, setUserText] = React.useState("");
-        const [aiResponse, setAiResponse] = React.useState("🤖 AI பதில் காத்திருக்கிறது...");
+        const [messages, setMessages] = React.useState([]);
         const [isRecording, setIsRecording] = React.useState(false);
         const [recordingText, setRecordingText] = React.useState("");
 
-        // Send input text to Together AI
+        const addMessage = (sender, text) => {
+          setMessages((prev) => [...prev, { sender, text }]);
+        };
+
         const handleTextSubmit = async (text) => {
           const query = text || userText;
           if (!query.trim()) return;
-          setAiResponse("⏳ பதிலை பெற முயற்சிக்கிறது...");
 
-          const result = await fetch("https://api.together.xyz/v1/chat/completions", {
+          addMessage("🧑", query);
+          setUserText("");
+          addMessage("🤖", "⏳ பதிலை பெற முயற்சிக்கிறது...");
+
+          const response = await fetch("https://api.together.xyz/v1/chat/completions", {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${TOGETHER_API_KEY}`,
+              "Authorization": `Bearer ${TOGETHER_API_KEY}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "togethercomputer/deepseek-chat",
+              model: "deepseek-ai/DeepSeek-V3",
               messages: [
                 {
                   role: "system",
@@ -60,19 +66,20 @@
             }),
           });
 
-          const data = await result.json();
-          if (data.choices && data.choices.length > 0) {
-            const responseText = data.choices[0].message.content
-              .replace(/[^\u0B80-\u0BFF\s]/g, "")
-              .trim();
-            setAiResponse("🤖 AI பதில்: " + responseText);
-            speakTamil(responseText);
-          } else {
-            setAiResponse("❌ பதிலை பெற முடியவில்லை.");
-          }
+          const data = await response.json();
+          const responseText =
+            data.choices && data.choices.length > 0
+              ? data.choices[0].message.content.replace(/[^\u0B80-\u0BFF\s]/g, "").trim()
+              : "❌ பதிலை பெற முடியவில்லை.";
+
+          // Remove placeholder and add real response
+          setMessages((prev) =>
+            [...prev.slice(0, -1), { sender: "🤖", text: responseText }]
+          );
+
+          speakTamil(responseText);
         };
 
-        // Text-to-speech for Tamil response
         const speakTamil = (text) => {
           if ("speechSynthesis" in window) {
             const voices = window.speechSynthesis.getVoices();
@@ -88,7 +95,6 @@
           }
         };
 
-        // Voice input using Web Speech API
         const startVoiceRecognition = () => {
           const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
           if (!SpeechRecognition) {
@@ -111,7 +117,6 @@
           };
 
           recognition.onerror = (event) => {
-            setAiResponse("❌ உரையை அடையாளம் காண இயலவில்லை.");
             console.error("Speech recognition error:", event.error);
           };
 
@@ -133,14 +138,16 @@
               onChange={(e) => setUserText(e.target.value)}
             />
             <div className="button-group">
-              <button onClick={() => handleTextSubmit()}>📝 பதில் பெற</button>
+              <button onClick={() => handleTextSubmit()}>📤 அனுப்பு</button>
               <button onClick={startVoiceRecognition} disabled={isRecording}>
                 🎙️ பதிவு செய்
               </button>
             </div>
             {recordingText && <div className="recording-text">{recordingText}</div>}
-            <div className="response-box">
-              <p>{aiResponse}</p>
+            <div className="response-box mt-3">
+              {messages.map((msg, index) => (
+                <p key={index}><strong>{msg.sender}</strong>: {msg.text}</p>
+              ))}
             </div>
           </div>
         );

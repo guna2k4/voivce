@@ -43,7 +43,7 @@
           const result = await fetch("https://api.sambanova.ai/v1/chat/completions", {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${SAMBANOVA_KEY}`,
+              Authorization: Bearer ${SAMBANOVA_KEY},
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
@@ -177,3 +177,18 @@
           </div>
         );
       }
+
+      function App() {
+        return (
+          <div>
+            <VoiceChat />
+            <hr />
+            <SchemeGrid />
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
+</html>

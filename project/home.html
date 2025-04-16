@@ -3,167 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Multi-Form Document Processing</title>
+  <title>Multi-Form Document Processing - Aadhaar</title>
   <!-- Bootstrap CSS CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       background: #f2f2f2;
-      padding-top: 20px;
+      padding-top: 70px;
     }
-    .container {
+    .container-custom {
       max-width: 800px;
       background: #fff;
       border-radius: 8px;
       padding: 20px;
-      margin: 0 auto;
-      box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
+      margin: auto;
+      margin-bottom: 20px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
     }
     .hidden {
       display: none;
     }
-    .nav-links {
-      margin-top: 20px;
-      text-align: center;
-    }
-    .nav-links a {
-      margin: 0 10px;
-    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Navigation links for separate pages -->
-    <div class="nav-links">
-      <a href="bank.html" class="btn btn-outline-primary">Go to Bank Details Page</a>
-      <a href="form.html" class="btn btn-outline-primary">Go to Ulavar Attai Page</a>
+  <!-- Responsive Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.html">Home</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="bank.html">Bank Details</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="form.html">Ulavar Attai</a>
+          </li>
+        </ul>
+      </div>
     </div>
-    
-    <!-- Nav tabs -->
-    <ul class="nav nav-tabs mb-3" id="formTabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="aadhaar-tab" data-bs-toggle="tab" data-bs-target="#aadhaar" type="button" role="tab" aria-controls="aadhaar" aria-selected="true">Aadhaar Details</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="bank-tab" data-bs-toggle="tab" data-bs-target="#bank" type="button" role="tab" aria-controls="bank" aria-selected="false">Bank Details</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="ulavar-tab" data-bs-toggle="tab" data-bs-target="#ulavar" type="button" role="tab" aria-controls="ulavar" aria-selected="false">Ulavar Attai</button>
-      </li>
-    </ul>
+  </nav>
 
-    <!-- Tab panes -->
-    <div class="tab-content">
-      <!-- Aadhaar Details tab -->
-      <div class="tab-pane fade show active" id="aadhaar" role="tabpanel" aria-labelledby="aadhaar-tab">
-        <!-- Step 1: Document selection and OCR extraction (Aadhaar) -->
-        <div id="ocr-section">
-          <h4>Select Aadhaar Document</h4>
-          <div class="mb-3">
-            <input type="file" class="form-control" id="aadhaarFileInput" accept="image/*,application/pdf">
-          </div>
-          <button class="btn btn-primary" onclick="extractAadhaarText()">Upload & Process Document</button>
+  <!-- Main Container for Aadhaar -->
+  <div class="container container-custom">
+    <h3 class="mb-4">Aadhaar Document Processing</h3>
+    <!-- File Upload Section -->
+    <div id="ocr-section">
+      <h5>Select Aadhaar Document</h5>
+      <div class="mb-3">
+        <input type="file" class="form-control" id="aadhaarFileInput" accept="image/*,application/pdf">
+      </div>
+      <button class="btn btn-primary" onclick="extractAadhaarText()">Upload &amp; Process Document</button>
+    </div>
+    <!-- Auto-filled Aadhaar Details Form -->
+    <div id="aadhaar-details" class="mt-4 hidden">
+      <h5>Aadhaar Auto-Filled Details</h5>
+      <form id="aadhaarForm">
+        <div class="mb-3">
+          <label for="name" class="form-label">Name / பெயர்:</label>
+          <input type="text" class="form-control" id="name" readonly>
         </div>
-        <!-- Step 2: Auto-filled Aadhaar Details form (hidden until extraction is done) -->
-        <div id="aadhaar-details" class="mt-4 hidden">
-          <h4>Aadhaar Auto-Filled Details</h4>
-          <form id="aadhaarForm">
-            <div class="mb-3">
-              <label for="name" class="form-label">Name / பெயர்:</label>
-              <input type="text" class="form-control" id="name" readonly>
-            </div>
-            <div class="mb-3">
-              <label for="age" class="form-label">Age / வயது:</label>
-              <input type="text" class="form-control" id="age" readonly>
-            </div>
-            <div class="mb-3">
-              <label for="gender" class="form-label">Gender / பாலினம்:</label>
-              <input type="text" class="form-control" id="gender" readonly>
-            </div>
-            <div class="mb-3">
-              <label for="fatherName" class="form-label">Father's Name / தந்தையின் பெயர்:</label>
-              <input type="text" class="form-control" id="fatherName" readonly>
-            </div>
-            <div class="mb-3">
-              <label for="aadhaarNumber" class="form-label">Aadhaar Number / ஆதார் எண்:</label>
-              <input type="text" class="form-control" id="aadhaarNumber" readonly>
-            </div>
-            <div class="mb-3">
-              <label for="address" class="form-label">Address / முகவரி:</label>
-              <textarea class="form-control" id="address" rows="3" readonly></textarea>
-            </div>
-            <button type="button" class="btn btn-success" onclick="submitAadhaar()">Submit Aadhaar Details</button>
-          </form>
+        <div class="mb-3">
+          <label for="age" class="form-label">Age / வயது:</label>
+          <input type="text" class="form-control" id="age" readonly>
         </div>
-      </div>
-
-      <!-- Bank Details tab -->
-      <div class="tab-pane fade" id="bank" role="tabpanel" aria-labelledby="bank-tab">
-        <h4>Bank Details</h4>
-        <form id="bankForm">
-          <div class="mb-3">
-            <label for="accountHolder" class="form-label">Account Holder Name:</label>
-            <input type="text" class="form-control" id="accountHolder">
-          </div>
-          <div class="mb-3">
-            <label for="accountNumber" class="form-label">Account Number:</label>
-            <input type="text" class="form-control" id="accountNumber">
-          </div>
-          <div class="mb-3">
-            <label for="ifsc" class="form-label">IFSC Code:</label>
-            <input type="text" class="form-control" id="ifsc">
-          </div>
-          <div class="mb-3">
-            <label for="bankName" class="form-label">Bank Name:</label>
-            <input type="text" class="form-control" id="bankName">
-          </div>
-          <div class="mb-3">
-            <label for="branch" class="form-label">Branch:</label>
-            <input type="text" class="form-control" id="branch">
-          </div>
-          <button type="button" class="btn btn-success" onclick="submitBank()">Submit Bank Details</button>
-        </form>
-      </div>
-
-      <!-- Ulavar Attai tab -->
-      <div class="tab-pane fade" id="ulavar" role="tabpanel" aria-labelledby="ulavar-tab">
-        <h4>Ulavar Attai Details</h4>
-        <form id="ulavarForm">
-          <div class="mb-3">
-            <label for="ulavarName" class="form-label">Ulavar Attai Name:</label>
-            <input type="text" class="form-control" id="ulavarName">
-          </div>
-          <div class="mb-3">
-            <label for="regNumber" class="form-label">Registration Number:</label>
-            <input type="text" class="form-control" id="regNumber">
-          </div>
-          <div class="mb-3">
-            <label for="issueDate" class="form-label">Issue Date:</label>
-            <input type="date" class="form-control" id="issueDate">
-          </div>
-          <div class="mb-3">
-            <label for="validity" class="form-label">Validity:</label>
-            <input type="text" class="form-control" id="validity">
-          </div>
-          <button type="button" class="btn btn-success" onclick="submitUlavar()">Submit Ulavar Attai Details</button>
-        </form>
-      </div>
+        <div class="mb-3">
+          <label for="gender" class="form-label">Gender / பாலினம்:</label>
+          <input type="text" class="form-control" id="gender" readonly>
+        </div>
+        <div class="mb-3">
+          <label for="fatherName" class="form-label">Father's Name / தந்தையின் பெயர்:</label>
+          <input type="text" class="form-control" id="fatherName" readonly>
+        </div>
+        <div class="mb-3">
+          <label for="aadhaarNumber" class="form-label">Aadhaar Number / ஆதார் எண்:</label>
+          <input type="text" class="form-control" id="aadhaarNumber" readonly>
+        </div>
+        <div class="mb-3">
+          <label for="address" class="form-label">Address / முகவரி:</label>
+          <textarea class="form-control" id="address" rows="3" readonly></textarea>
+        </div>
+        <button type="button" class="btn btn-success" onclick="submitAadhaar()">Submit Aadhaar Details</button>
+      </form>
     </div>
   </div>
 
   <!-- Bootstrap Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // === API Credentials and Endpoints ===
-    // OCR API for English text extraction.
-    const OCR_API_KEY = "K85061176588957"; 
+    // ====== API Credentials & Endpoints ======
+    const OCR_API_KEY = "K85061176588957";
     const OCR_API_URL = "https://api.ocr.space/parse/image";
-    // DeepSeek API for extracting Aadhaar key details.
     const DS_API_KEY = "103a7289888c3de65bede92e1f8a3806a057b72a0c552825669901d4819e0d4b";
     const DS_ENDPOINT = "https://api.together.xyz/v1/chat/completions";
     const DS_MODEL = "deepseek-ai/DeepSeek-V3";
 
-    // --- Aadhaar Processing Functions ---
+    // ====== Aadhaar Extraction Functions ======
     async function extractWithLanguage(file, language) {
       const formData = new FormData();
       formData.append("apikey", OCR_API_KEY);
@@ -172,11 +109,8 @@
       formData.append("OCREngine", "2");
       formData.append("scale", "true");
       formData.append("isOverlayRequired", "false");
-
-      const response = await fetch(OCR_API_URL, {
-        method: "POST",
-        body: formData
-      });
+      
+      const response = await fetch(OCR_API_URL, { method: "POST", body: formData });
       return await response.json();
     }
 
@@ -186,9 +120,7 @@
         alert("Please select a document file.");
         return;
       }
-      // Hide the OCR section (do not show any raw text to user)
       document.getElementById("ocr-section").classList.add("hidden");
-
       const file = fileInput.files[0];
       try {
         const result = await extractWithLanguage(file, "eng");
@@ -197,16 +129,15 @@
           alert("No text found in the document.");
           return;
         }
-        // Process the extracted text using DeepSeek to obtain key Aadhaar details.
-        processDeepSeek(extractedText);
+        processDeepSeekAadhaar(extractedText);
       } catch (error) {
         console.error(error);
         alert("Network error: " + error.message);
       }
     }
 
-    async function processDeepSeek(ocrText) {
-      const prompt = `Extract the following key details from the text below:
+    async function processDeepSeekAadhaar(ocrText) {
+      const prompt = `Extract the following key details from the Aadhaar text:
 - Name
 - Age
 - Gender
@@ -219,7 +150,6 @@ Return the result strictly as a JSON object with keys:
 
 Text:
 ${ocrText}`;
-
       try {
         const response = await fetch(DS_ENDPOINT, {
           method: "POST",
@@ -235,7 +165,6 @@ ${ocrText}`;
             ]
           })
         });
-
         const data = await response.json();
         let aiText = data.choices[0].message.content.trim();
         let details;
@@ -248,7 +177,7 @@ ${ocrText}`;
             const jsonString = aiText.substring(firstBracket, lastBracket + 1);
             details = JSON.parse(jsonString);
           } else {
-            throw new Error("Unable to extract valid JSON from the DeepSeek response.");
+            throw new Error("Unable to extract valid JSON.");
           }
         }
         fillAadhaarFields(details);
@@ -265,25 +194,11 @@ ${ocrText}`;
       document.getElementById("fatherName").value = details.fatherName || "";
       document.getElementById("aadhaarNumber").value = details.aadhaar || "";
       document.getElementById("address").value = details.address || "";
-      // Show the auto-filled Aadhaar form.
       document.getElementById("aadhaar-details").classList.remove("hidden");
     }
 
     function submitAadhaar() {
-      // Add your Aadhaar submission code here.
       alert("Aadhaar details submitted successfully!");
-    }
-
-    // --- Bank Details Submission ---
-    function submitBank() {
-      // Add your Bank details submission code here.
-      alert("Bank details submitted successfully!");
-    }
-
-    // --- Ulavar Attai Submission ---
-    function submitUlavar() {
-      // Add your Ulavar Attai submission code here.
-      alert("Ulavar Attai details submitted successfully!");
     }
   </script>
 </body>

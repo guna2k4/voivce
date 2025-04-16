@@ -3,69 +3,190 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bank Details</title>
+  <title>Bank Details - வங்கி விவரங்கள்</title>
   <!-- Bootstrap CSS CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       background: #f2f2f2;
-      padding-top: 20px;
+      padding-top: 70px;
     }
-    .container {
+    .container-custom {
       max-width: 600px;
       background: #fff;
       border-radius: 8px;
       padding: 20px;
       margin: auto;
-      box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
-    }
-    .nav-links {
       margin-bottom: 20px;
-      text-align: center;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
     }
-    .nav-links a {
-      margin: 0 10px;
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Navigation links -->
-    <div class="nav-links">
-      <a href="index.html" class="btn btn-outline-primary">Back to Main Page</a>
-      <a href="form.html" class="btn btn-outline-primary">Go to Ulavar Attai Page</a>
+  <!-- Responsive Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.html">Home</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+          <a class="nav-link" href="form.html">Ulavar Attai</a>
+        </div>
+      </div>
     </div>
-    <h4>Bank Details</h4>
-    <form id="bankForm">
+  </nav>
+
+  <!-- Main Container for Bank Details -->
+  <div class="container container-custom">
+    <h3 class="mb-4">வங்கி விவரங்கள் (Bank Details)</h3>
+    <!-- File Upload & OCR Section -->
+    <div id="bank-ocr-section">
+      <h5>வங்கி ஆவணத்தைத் தேர்ந்தெடுக்கவும்</h5>
       <div class="mb-3">
-        <label for="accountHolder" class="form-label">Account Holder Name:</label>
-        <input type="text" class="form-control" id="accountHolder">
+        <input type="file" class="form-control" id="bankFileInput" accept="image/*,application/pdf">
       </div>
-      <div class="mb-3">
-        <label for="accountNumber" class="form-label">Account Number:</label>
-        <input type="text" class="form-control" id="accountNumber">
-      </div>
-      <div class="mb-3">
-        <label for="ifsc" class="form-label">IFSC Code:</label>
-        <input type="text" class="form-control" id="ifsc">
-      </div>
-      <div class="mb-3">
-        <label for="bankName" class="form-label">Bank Name:</label>
-        <input type="text" class="form-control" id="bankName">
-      </div>
-      <div class="mb-3">
-        <label for="branch" class="form-label">Branch:</label>
-        <input type="text" class="form-control" id="branch">
-      </div>
-      <button type="button" class="btn btn-success" onclick="submitBank()">Submit Bank Details</button>
-    </form>
+      <button class="btn btn-primary" onclick="extractBankText()">Upload &amp; Process Document</button>
+    </div>
+    <!-- Auto-filled Bank Details Form -->
+    <div id="bank-details" class="mt-4 hidden">
+      <h5>ஆட்டோ நிரப்பப்பட்ட வங்கி விவரங்கள்</h5>
+      <form id="bankForm">
+        <div class="mb-3">
+          <label for="accountHolder" class="form-label">Account Holder Name / கணக்கு வைத்திருப்பவரின் பெயர்:</label>
+          <input type="text" class="form-control" id="accountHolder">
+        </div>
+        <div class="mb-3">
+          <label for="accountNumber" class="form-label">Account Number / கணக்கு எண்:</label>
+          <input type="text" class="form-control" id="accountNumber">
+        </div>
+        <div class="mb-3">
+          <label for="ifsc" class="form-label">IFSC Code / IFSC குறியீடு:</label>
+          <input type="text" class="form-control" id="ifsc">
+        </div>
+        <div class="mb-3">
+          <label for="bankName" class="form-label">Bank Name / வங்கி பெயர்:</label>
+          <input type="text" class="form-control" id="bankName">
+        </div>
+        <div class="mb-3">
+          <label for="branch" class="form-label">Branch / கிளை:</label>
+          <input type="text" class="form-control" id="branch">
+        </div>
+        <button type="button" class="btn btn-success" onclick="submitBank()">Submit Bank Details</button>
+      </form>
+    </div>
   </div>
 
   <!-- Bootstrap Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // ====== API Credentials & Endpoints (Reuse same credentials) ======
+    const OCR_API_KEY = "K85061176588957";
+    const OCR_API_URL = "https://api.ocr.space/parse/image";
+    const DS_API_KEY = "103a7289888c3de65bede92e1f8a3806a057b72a0c552825669901d4819e0d4b";
+    const DS_ENDPOINT = "https://api.together.xyz/v1/chat/completions";
+    const DS_MODEL = "deepseek-ai/DeepSeek-V3";
+
+    // ====== Bank Details Extraction Functions ======
+    async function extractWithLanguage(file, language) {
+      const formData = new FormData();
+      formData.append("apikey", OCR_API_KEY);
+      formData.append("file", file);
+      formData.append("language", language);
+      formData.append("OCREngine", "2");
+      formData.append("scale", "true");
+      formData.append("isOverlayRequired", "false");
+      
+      const response = await fetch(OCR_API_URL, { method: "POST", body: formData });
+      return await response.json();
+    }
+
+    async function extractBankText() {
+      const fileInput = document.getElementById("bankFileInput");
+      if (!fileInput.files.length) {
+        alert("Please select a document file.");
+        return;
+      }
+      document.getElementById("bank-ocr-section").classList.add("hidden");
+      const file = fileInput.files[0];
+      try {
+        const result = await extractWithLanguage(file, "eng");
+        const extractedText = result.ParsedResults?.[0]?.ParsedText?.trim();
+        if (!extractedText) {
+          alert("No text found in the document.");
+          return;
+        }
+        processDeepSeekBank(extractedText);
+      } catch (error) {
+        console.error(error);
+        alert("Network error: " + error.message);
+      }
+    }
+
+    async function processDeepSeekBank(ocrText) {
+      const prompt = `Extract the following key details from the Bank document text:
+- Account Holder Name
+- Account Number
+- IFSC Code
+- Bank Name
+- Branch
+
+Return the result strictly as a JSON object with keys:
+"accountHolder", "accountNumber", "ifsc", "bankName", "branch".
+
+Text:
+${ocrText}`;
+      try {
+        const response = await fetch(DS_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${DS_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: DS_MODEL,
+            messages: [
+              { role: "system", content: "Extract key details and return results as JSON only." },
+              { role: "user", content: prompt }
+            ]
+          })
+        });
+        const data = await response.json();
+        let aiText = data.choices[0].message.content.trim();
+        let details;
+        try {
+          details = JSON.parse(aiText);
+        } catch (e) {
+          const firstBracket = aiText.indexOf('{');
+          const lastBracket = aiText.lastIndexOf('}');
+          if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+            const jsonString = aiText.substring(firstBracket, lastBracket + 1);
+            details = JSON.parse(jsonString);
+          } else {
+            throw new Error("Unable to extract valid JSON.");
+          }
+        }
+        fillBankFields(details);
+      } catch (error) {
+        console.error("Error processing DeepSeek:", error);
+        alert("Error during bank detail extraction: " + error.message);
+      }
+    }
+
+    function fillBankFields(details) {
+      document.getElementById("accountHolder").value = details.accountHolder || "";
+      document.getElementById("accountNumber").value = details.accountNumber || "";
+      document.getElementById("ifsc").value = details.ifsc || "";
+      document.getElementById("bankName").value = details.bankName || "";
+      document.getElementById("branch").value = details.branch || "";
+      document.getElementById("bank-details").classList.remove("hidden");
+    }
+
     function submitBank() {
-      // Add your Bank details submission code here.
       alert("Bank details submitted successfully!");
     }
   </script>

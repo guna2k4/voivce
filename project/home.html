@@ -198,8 +198,9 @@ ${ocrText}`;
     }
 
     function submitAadhaar() {
-      alert("Aadhaar details submitted successfully!");
-    }
+  document.getElementById("aadhaarForm").insertAdjacentHTML("afterend", "<div class='alert alert-success mt-3'>Aadhaar submitted successfully!</div>");
+}
+
   </script>
 </body>
 </html>
